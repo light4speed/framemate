@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FrameMate Cast Receiver</title>
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; }
+    cast-media-player { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+  <cast-media-player></cast-media-player>
+
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+  <script>
+    const context = cast.framework.CastReceiverContext.getInstance();
+    const playerManager = context.getPlayerManager();
+
+    // Tune Shaka for low-latency live HLS. The Default Media Receiver buffers ~10 s;
+    // these settings bring it down to ~2 s at the cost of occasional rebuffering on
+    // a weak Wi-Fi link.
+    playerManager.addEventListener(
+      cast.framework.events.EventType.PLAYER_LOAD_COMPLETE,
+      () => {
+        const shaka = playerManager.getShakaPlayerInstance();
+        if (!shaka) return;
+        shaka.configure({
+          streaming: {
+            bufferingGoal: 2,        // seconds of forward buffer to keep
+            rebufferingGoal: 1,      // seconds before resuming after a stall
+            bufferBehind: 5,         // seconds of backward buffer
+          },
+          manifest: {
+            defaultPresentationDelay: 0, // start at the live edge
+          },
+        });
+        // Live sync: stay as close to the live edge as possible.
+        if (shaka.getConfiguration().streaming.liveSync) {
+          shaka.configure({
+            streaming: {
+              liveSync: {
+                enabled: true,
+                targetLatency: 1,    // seconds behind the live edge
+                maxLatency: 3,
+              },
+            },
+          });
+        }
+      }
+    );
+
+    // Auto-play when media is loaded.
+    playerManager.addEventListener(
+      cast.framework.events.EventType.REQUEST_LOAD,
+      (event) => {
+        // Nothing extra needed; CAF handles HLS loading. The Shaka tuning above
+        // applies once PLAYER_LOAD_COMPLETE fires.
+      }
+    );
+
+    context.start();
+  </script>
+</body>
+</html>

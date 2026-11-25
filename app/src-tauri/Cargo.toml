@@ -1,0 +1,45 @@
+# Standalone, not part of the root (agent) workspace.
+[workspace]
+
+[package]
+name = "framemate-app"
+description = "FrameMate companion app"
+version = "0.3.0"
+license = "GPL-3.0-or-later"
+edition = "2024"
+
+[lib]
+# Unique lib name avoids a bin/lib name clash (cargo#8519).
+name = "framemate_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+futures-util = "0.3"
+ring = "0.17.14"
+rustls = { version = "0.23.45", default-features = false, features = ["ring", "std"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = [] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "macros", "time"] }
+tokio-rustls = { version = "0.26.6", default-features = false, features = ["ring"] }
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "handshake"] }
+webpki = { package = "rustls-webpki", version = "0.103", default-features = false, features = ["alloc", "ring"] }
+
+# Mobile-only: the scanner plugin has no desktop implementation.
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-barcode-scanner = "2"
+
+# JNI entry point for the notification listener (forward.rs); already in the tree via Tauri.
+[target.'cfg(target_os = "android")'.dependencies]
+jni = "0.21"
+
+[dev-dependencies]
+rcgen = { version = "0.14.10", default-features = false, features = ["crypto", "ring"] }
+tokio = { version = "1", features = ["time"] }
+
+[profile.release]
+strip = true
+lto = "thin"

@@ -1,0 +1,14 @@
+[workspace]
+resolver = "3"
+# Only the agent. The app's Rust shell (app/src-tauri) is its own project with its own
+# Cargo.lock, so Tauri's dependencies never touch the agent's static musl build.
+members = ["crates/agent"]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[profile.release]
+strip = true
+lto = "thin"
