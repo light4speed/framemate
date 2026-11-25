@@ -30,3 +30,31 @@
   </script>
 </body>
 </html>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+</head>
+<body>
+  <cast-media-player></cast-media-player>
+  <script>
+    const context = cast.framework.CastReceiverContext.getInstance();
+    const playerManager = context.getPlayerManager();
+    // Tune Shaka for low latency once the player is ready.
+    playerManager.addEventListener(
+      cast.framework.events.EventType.PLAYER_LOAD_COMPLETE,
+      () => {
+        const shaka = playerManager.getShakaPlayerInstance();
+        if (shaka) {
+          shaka.configure({
+            streaming: { bufferingGoal: 2, rebufferingGoal: 1 },
+            manifest: { defaultPresentationDelay: 0 },
+          });
+        }
+      }
+    );
+    context.start();
+  </script>
+</body>
+</html>
