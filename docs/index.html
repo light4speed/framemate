@@ -9,9 +9,9 @@
       if (!shaka) return;
       shaka.configure({
         streaming: {
-          bufferingGoal: 3,       // 3 s buffer
+          bufferingGoal: 4,       // 4 s buffer
           rebufferingGoal: 2,     // resume after 2 s
-          bufferBehind: 6,
+          bufferBehind: 8,
         },
         manifest: {
           defaultPresentationDelay: 0,
@@ -23,7 +23,7 @@
             liveSync: {
               enabled: true,
               targetLatency: 2,   // 2 s behind live edge
-              maxLatency: 3,
+              maxLatency: 4,
             },
           },
         });
