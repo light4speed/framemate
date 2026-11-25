@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FrameMate Cast Receiver</title>
+  <style>
+    body { margin: 0; background: #000; overflow: hidden; }
+    cast-media-player { width: 100vw; height: 100vh; display: block; }
+  </style>
+</head>
+<body>
+  <cast-media-player></cast-media-player>
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+  <script>
+    const context = cast.framework.CastReceiverContext.getInstance();
+    const playerManager = context.getPlayerManager();
+
+    // Log everything for debugging.
+    playerManager.addEventListener(cast.framework.events.EventType.PLAYER_LOAD_COMPLETE, () => {
+      console.log("PLAYER_LOAD_COMPLETE");
+    });
+    playerManager.addEventListener(cast.framework.events.EventType.ERROR, (e) => {
+      console.error("PLAYER ERROR:", JSON.stringify(e));
+    });
+    context.addEventListener(cast.framework.system.EventType.SENDER_DISCONNECTED, () => {
+      console.log("Sender disconnected");
+    });
+
+    context.start({ disableIdleTimeout: true });
+  </script>
+</body>
+</html>
