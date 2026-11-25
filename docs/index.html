@@ -1,27 +1,35 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
-</head>
-<body>
-  <cast-media-player></cast-media-player>
-  <script>
-    const context = cast.framework.CastReceiverContext.getInstance();
-    const playerManager = context.getPlayerManager();
-    // Tune Shaka for low latency once the player is ready.
-    playerManager.addEventListener(
-      cast.framework.events.EventType.PLAYER_LOAD_COMPLETE,
-      () => {
-        const shaka = playerManager.getShakaPlayerInstance();
-        if (shaka) {
-          shaka.configure({
-            streaming: { bufferingGoal: 2, rebufferingGoal: 1 },
-            manifest: { defaultPresentationDelay: 0 },
-          });
-        }
+<script>
+  const context = cast.framework.CastReceiverContext.getInstance();
+  const playerManager = context.getPlayerManager();
+
+  playerManager.addEventListener(
+    cast.framework.events.EventType.PLAYER_LOAD_COMPLETE,
+    () => {
+      const shaka = playerManager.getShakaPlayerInstance();
+      if (!shaka) return;
+      shaka.configure({
+        streaming: {
+          bufferingGoal: 6,       // was 2 — keep 6 s of buffer
+          rebufferingGoal: 3,     // was 1 — resume after 3 s
+          bufferBehind: 10,
+        },
+        manifest: {
+          defaultPresentationDelay: 0,
+        },
+      });
+      if (shaka.getConfiguration().streaming.liveSync) {
+        shaka.configure({
+          streaming: {
+            liveSync: {
+              enabled: true,
+              targetLatency: 3,   // was 1 — stay 3 s behind live edge
+              maxLatency: 6,
+            },
+          },
+        });
       }
-    );
-    context.start();
-  </script>
-</body>
-</html>
+    }
+  );
+
+  context.start({ disableIdleTimeout: true });
+</script>
